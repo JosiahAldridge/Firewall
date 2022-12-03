@@ -23,11 +23,13 @@
 Adafruit_AMG88xx amg;
 int dangerTemp = 69;
 int dangerCount;
-int dangerLimit = 3;
+int dangerLimit = 1;
 bool combatState = LOW;
 bool searchState = HIGH;
 float pixels[AMG88xx_PIXEL_ARRAY_SIZE];
 LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
+int maxTemp;
+int maxTempF;
 
 
 void setup() {
@@ -43,17 +45,17 @@ void setup() {
     delay(100); // let sensor boot up
     lcd.begin(16, 2);
     lcd.print("Firewall Enagage!");
+    delay(2000);
 }
 
 
 void loop() 
 {
+  maxTemp = 0;
   if (searchState = HIGH) 
   {
     //read all the pixels
     amg.readPixels(pixels);
-    lcd.setCursor(0, 1);
-    lcd.print("Temp C ");
     dangerCount = 0;
     for(int i=1; i<=AMG88xx_PIXEL_ARRAY_SIZE; i++){
       if (pixels[i-1] >= dangerTemp)
@@ -61,18 +63,29 @@ void loop()
         dangerCount += 1;
       }
     }
+    for(int i=1; i<=AMG88xx_PIXEL_ARRAY_SIZE; i++){
+      if (pixels[i-1] > maxTemp)
+      {
+        maxTemp = pixels[i-1];
+      }
+    }
+    lcd.setCursor(1, 1);
+    lcd.print("Temp       F");
     lcd.setCursor(6, 1);
+    maxTempF = (maxTemp*1.8)+32;
+    lcd.print(maxTempF);
+    lcd.setCursor(0, 0);
     if (dangerCount >= dangerLimit)
     {
       searchState = LOW;
       combatState = HIGH;
-      lcd.print("Danger!");
+      lcd.print("Danger!      ");
     }
     else
     {
-      lcd.print("Searching!");
+      lcd.print("Searching!       ");
     }
     //delay a second
-    delay(1000);
+    delay(500);
   }
 }
